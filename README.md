@@ -1,20 +1,21 @@
-# Introduction 
-TODO: Give a short introduction of your project. Let this section explain the objectives or the motivation behind this project. 
+# Setup guide
+Create a virtual environment for the project. 
 
-# Getting Started
-TODO: Guide users through getting your code up and running on their own system. In this section you can talk about:
-1.	Installation process
-2.	Software dependencies
-3.	Latest releases
-4.	API references
+```shell
+python -m venv .venv  # aligned with .gitignore file
+```
 
-# Build and Test
-TODO: Describe and show how to build your code and run the tests. 
+After doing that, add it as the python interpreter for your workspace/environment. 
 
-# Contribute
-TODO: Explain how other users and developers can contribute to make your code better. 
+For VSCode I added a file `.env` and add the following to it. Adjust to fit your folder structure.\
+`PYTHONPATH=<path to your venv>\Scripts\python.exe`
 
-If you want to learn more about creating good readme files then refer the following [guidelines](https://docs.microsoft.com/en-us/azure/devops/repos/git/create-a-readme?view=azure-devops). You can also seek inspiration from the below readme files:
-- [ASP.NET Core](https://github.com/aspnet/Home)
-- [Visual Studio Code](https://github.com/Microsoft/vscode)
-- [Chakra Core](https://github.com/Microsoft/ChakraCore)
+Next install the required dependencies.
+
+```shell
+python.exe -m pip install --upgrade pip
+pip install mediapipe>=0.10.18
+pip install opencv-python>=4.10
+```
+
+Now you should be able to launch the `hand.py` program and have hand recognition using your webcam.

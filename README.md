@@ -14,8 +14,7 @@ Next install the required dependencies.
 
 ```shell
 python.exe -m pip install --upgrade pip
-pip install mediapipe>=0.10.18
-pip install opencv-python>=4.10
+pip install -r requirements.txt
 ```
 
 Now you should be able to launch the `hand.py` program and have hand recognition using your webcam.

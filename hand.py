@@ -12,14 +12,11 @@ while True:
     if not success:
         break
 
-    # flip the image for natural mirroring
-    results = hands.process(
-        cv2.cvtColor(img := cv2.flip(img, 1), cv2.COLOR_BGR2RGB))
+    img = cv2.flip(img, 1)  # flip the image for natural mirroring
+    results = hands.process(cv2.cvtColor(img, cv2.COLOR_BGR2RGB))
 
-    # draw landmarks if hands are detected
-    if results.multi_hand_landmarks:
-        for hl in results.multi_hand_landmarks:
-            mp_draw.draw_landmarks(img, hl, mp_hands.HAND_CONNECTIONS)
+    for hl in results.multi_hand_landmarks or []:  # draw landmarks if hands are detected
+        mp_draw.draw_landmarks(img, hl, mp_hands.HAND_CONNECTIONS)
 
     cv2.imshow("Hand Recognition", img)
 

@@ -42,6 +42,6 @@ while True:
     if cv2.waitKey(1) != -1:  # exit on any key press
         break
 
-# Cleanup
+# cleanup
 cam.release()
 cv2.destroyAllWindows()

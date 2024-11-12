@@ -1,6 +1,17 @@
 import cv2
 import numpy as np
 import mediapipe as mp
+from matplotlib import colors
+
+
+def get_bgr_color(name):
+    """Convert a named color to BGR format."""
+    return tuple(int(c * 255) for c in reversed(colors.to_rgb(name)))
+
+def adjust_bgr_color(color, depth_shade):
+    """Adjust each channel and clamp between 0 and 255."""
+    return tuple(max(0, min(255, c - depth_shade)) for c in color)
+
 
 # initialize components
 mp_draw = mp.solutions.drawing_utils
@@ -9,12 +20,12 @@ hands = mp_hands.Hands(static_image_mode=False, max_num_hands=1, min_detection_c
 cam = cv2.VideoCapture(0)
 
 # some constants
+BGR_SKIN = get_bgr_color("peachpuff")
+BGR_SHADOW = get_bgr_color("saddlebrown")
 IMAGE_WIDTH = int(cam.get(cv2.CAP_PROP_FRAME_WIDTH))
 IMAGE_HEIGHT = int(cam.get(cv2.CAP_PROP_FRAME_HEIGHT))
 IMAGE_DIMENSIONS = (IMAGE_WIDTH, IMAGE_HEIGHT)
 
-skin_color = (206, 184, 136)
-shadow_color = (150, 128, 100)
 
 while True:
     success, img = cam.read()
@@ -25,18 +36,17 @@ while True:
 
     for hl in hands.process(img_rgb).multi_hand_landmarks or []:
         canvas = np.ones((IMAGE_HEIGHT, IMAGE_WIDTH, 3), dtype=np.uint8) * 255
-
+        
         for lm in hl.landmark:
             x, y = int(lm.x * IMAGE_WIDTH), int(lm.y * IMAGE_HEIGHT)
             depth_shade = int((1 - lm.z) * 50)  # depth-based shading effect
-            color = tuple(int(c) for c in np.clip(np.array(skin_color) - depth_shade, 0, 255))
-            cv2.circle(canvas, (x, y), 8, color, -1)  # filled circles for a realistic look
-
+            cv2.circle(canvas, (x, y), 8, adjust_bgr_color(BGR_SKIN, depth_shade), -1)
+        
         # draw connections with realistic thickness and shading
         mp_draw.draw_landmarks(
             canvas, hl, mp_hands.HAND_CONNECTIONS,
-            mp_draw.DrawingSpec(color=shadow_color, thickness=4, circle_radius=0),
-            mp_draw.DrawingSpec(color=skin_color, thickness=6, circle_radius=0))
+            mp_draw.DrawingSpec(color=BGR_SHADOW, thickness=9, circle_radius=0),
+            mp_draw.DrawingSpec(color=BGR_SKIN, thickness=6, circle_radius=0))
 
         cv2.imshow("Hand on White Background", canvas)
 

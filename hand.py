@@ -17,11 +17,11 @@ def adjust_bgr_color(color, depth_shade):
 mp_draw = mp.solutions.drawing_utils
 mp_hands = mp.solutions.hands
 hands = mp_hands.Hands(static_image_mode=False, max_num_hands=1, min_detection_confidence=0.5)
-cam = cv2.VideoCapture(0)
+cam = cv2.VideoCapture(0)  # change number to cycle between multiple input feeds
 
 # some constants
-BGR_SKIN = get_bgr_color("peachpuff")
-BGR_SHADOW = get_bgr_color("saddlebrown")
+BGR_SKIN_LT = get_bgr_color("peachpuff")
+BGR_SKIN_DK = get_bgr_color("burlywood")
 IMAGE_WIDTH = int(cam.get(cv2.CAP_PROP_FRAME_WIDTH))
 IMAGE_HEIGHT = int(cam.get(cv2.CAP_PROP_FRAME_HEIGHT))
 IMAGE_DIMENSIONS = (IMAGE_WIDTH, IMAGE_HEIGHT)
@@ -36,21 +36,24 @@ while True:
 
     for hl in hands.process(img_rgb).multi_hand_landmarks or []:
         canvas = np.ones((IMAGE_HEIGHT, IMAGE_WIDTH, 3), dtype=np.uint8) * 255
-        
+
         for lm in hl.landmark:
             x, y = int(lm.x * IMAGE_WIDTH), int(lm.y * IMAGE_HEIGHT)
             depth_shade = int((1 - lm.z) * 50)  # depth-based shading effect
-            cv2.circle(canvas, (x, y), 8, adjust_bgr_color(BGR_SKIN, depth_shade), -1)
+            cv2.circle(canvas, (x, y), 8, adjust_bgr_color(BGR_SKIN_LT, depth_shade), -1)
         
         # draw connections with realistic thickness and shading
+        avg_z = sum(lm.z for lm in hl.landmark) / len(hl.landmark)
+        depth_factor = min(10, max(5, int(10 / (avg_z + 0.1)) // 10))
+        # print(depth_factor)
         mp_draw.draw_landmarks(
             canvas, hl, mp_hands.HAND_CONNECTIONS,
-            mp_draw.DrawingSpec(color=BGR_SHADOW, thickness=9, circle_radius=0),
-            mp_draw.DrawingSpec(color=BGR_SKIN, thickness=6, circle_radius=0))
+            mp_draw.DrawingSpec(color=BGR_SKIN_DK, thickness=depth_factor, circle_radius=0),
+            mp_draw.DrawingSpec(color=BGR_SKIN_LT, thickness=(depth_factor * 2), circle_radius=0))
 
         cv2.imshow("Hand on White Background", canvas)
 
-    #cv2.imshow("Original Webcam Feed", img)  # display original feed
+    cv2.imshow("Original Webcam Feed", img)  # display original feed
 
     if cv2.waitKey(1) != -1:  # exit on any key press
         break

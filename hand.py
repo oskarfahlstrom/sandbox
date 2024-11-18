@@ -36,20 +36,23 @@ while True:
 
     for hl in hands.process(img_rgb).multi_hand_landmarks or []:
         canvas = np.ones((IMAGE_HEIGHT, IMAGE_WIDTH, 3), dtype=np.uint8) * 255
-
-        for lm in hl.landmark:
-            x, y = int(lm.x * IMAGE_WIDTH), int(lm.y * IMAGE_HEIGHT)
-            depth_shade = int((1 - lm.z) * 50)  # depth-based shading effect
-            cv2.circle(canvas, (x, y), 8, adjust_bgr_color(BGR_SKIN_LT, depth_shade), -1)
         
         # draw connections with realistic thickness and shading
         avg_z = sum(lm.z for lm in hl.landmark) / len(hl.landmark)
-        depth_factor = min(10, max(5, int(10 / (avg_z + 0.1)) // 10))
-        # print(depth_factor)
+        depth_factor = max(5, min(15, 15 + (avg_z + 0.2) * (5 - 15) / (-0.005 + 0.2)))
+        #print(f"avg_z: {avg_z} - depth_factor: {depth_factor}")
+
+        for lm in hl.landmark:
+            x, y = int(lm.x * IMAGE_WIDTH), int(lm.y * IMAGE_HEIGHT)
+            #depth_shade = int((1 - lm.z) * 50)  # depth-based shading effect
+            cv2.circle(canvas, (x, y), int(depth_factor * 2), BGR_SKIN_LT, -1)
+        
         mp_draw.draw_landmarks(
             canvas, hl, mp_hands.HAND_CONNECTIONS,
-            mp_draw.DrawingSpec(color=BGR_SKIN_DK, thickness=depth_factor, circle_radius=0),
-            mp_draw.DrawingSpec(color=BGR_SKIN_LT, thickness=(depth_factor * 2), circle_radius=0))
+            mp_draw.DrawingSpec(
+                color=BGR_SKIN_DK, thickness=int(depth_factor * 2), circle_radius=0),
+            mp_draw.DrawingSpec(
+                color=BGR_SKIN_LT, thickness=int(depth_factor * 3), circle_radius=0))
 
         cv2.imshow("Hand on White Background", canvas)
 

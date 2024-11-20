@@ -6,7 +6,4 @@ def convert_h5_to_tflite(file_path: str):
     tflite_model = converter.convert()
     with open(f"{file_path.replace(".h5", ".tflite")}.tflite", "wb") as f:
         f.write(tflite_model)
-
-if __name__ == "__main__":
-    convert_h5_to_tflite("resources/rps_model.h5")
     

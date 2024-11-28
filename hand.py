@@ -21,12 +21,13 @@ IMAGE_HEIGHT = 500
 IMAGE_DIMENSIONS = (IMAGE_WIDTH, IMAGE_HEIGHT)
 
 
-def run():
+def run(cam_feed: int = 0):
+    """Launch a hand recognition session. Pass webcam feed id or use 0 as default."""
     # initialize components
     mp_draw = mp.solutions.drawing_utils
     mp_hands = mp.solutions.hands
     hands = mp_hands.Hands(static_image_mode=False, max_num_hands=1, min_detection_confidence=0.5)
-    cam = cv2.VideoCapture(0)  # change number to cycle between multiple input feeds
+    cam = cv2.VideoCapture(cam_feed)  # change number to cycle between multiple input feeds
     cam.set(cv2.CAP_PROP_FRAME_HEIGHT, IMAGE_HEIGHT)
     cam.set(cv2.CAP_PROP_FRAME_WIDTH, IMAGE_WIDTH)
 
@@ -70,4 +71,4 @@ def run():
 
 
 if __name__ == "__main__":
-    run()
+    run(0)  # webcam feed 0

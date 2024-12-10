@@ -4,13 +4,26 @@ import mediapipe as mp
 from matplotlib import colors
 
 
-def get_bgr_color(name):
+def get_bgr_color(name: str):
     """Convert a named color to BGR format."""
     return tuple(int(c * 255) for c in reversed(colors.to_rgb(name)))
 
-def adjust_bgr_color(color, depth_shade):
+def adjust_bgr_color(color: str, depth_shade: int):
     """Adjust each channel and clamp between 0 and 255."""
     return tuple(max(0, min(255, c - depth_shade)) for c in color)
+
+def rotate_canvas(image: np.ndarray, angle: int) -> np.ndarray:
+    """Rotate the canvas content while keeping the frame size unchanged."""
+    # create the rotation matrix
+    rotation_matrix = cv2.getRotationMatrix2D(
+        (IMAGE_WIDTH // 2, IMAGE_HEIGHT // 2), angle, 1.0)
+
+    # perform the rotation without changing the frame size
+    params = {
+        "flags": cv2.INTER_LINEAR, 
+        "borderMode":cv2.BORDER_CONSTANT, 
+        "borderValue":(0, 0, 0)}
+    return cv2.warpAffine(image, rotation_matrix, (IMAGE_WIDTH, IMAGE_HEIGHT), **params)
 
 
 # some constants
@@ -39,7 +52,8 @@ def run(cam_feed: int = 0):
         img_rgb = cv2.cvtColor(cv2.flip(img, 1), cv2.COLOR_BGR2RGB)  # flip for natural mirroring
 
         for hl in hands.process(img_rgb).multi_hand_landmarks or []:
-            canvas = np.ones((IMAGE_HEIGHT, IMAGE_WIDTH, 3), dtype=np.uint8) * 255
+            #canvas = np.ones((IMAGE_HEIGHT, IMAGE_WIDTH, 3), dtype=np.uint8) * 0
+            canvas = np.zeros((IMAGE_HEIGHT, IMAGE_WIDTH, 3), dtype=np.uint8)  # black background
             
             # draw connections with realistic thickness and shading
             avg_z = sum(lm.z for lm in hl.landmark) / len(hl.landmark)
@@ -58,9 +72,10 @@ def run(cam_feed: int = 0):
                 mp_draw.DrawingSpec(
                     color=BGR_SKIN_LT, thickness=int(depth_factor * 3), circle_radius=0))
 
-            cv2.imshow("Hand on White Background", canvas)
+            rotated_canvas = rotate_canvas(canvas, 45)
+            cv2.imshow("Hand on Black Background", rotated_canvas)
 
-        cv2.imshow("Original Webcam Feed", img)  # display original feed
+        #cv2.imshow("Original Webcam Feed", img)  # display original feed
 
         if cv2.waitKey(1) != -1:  # exit on any key press
             break
